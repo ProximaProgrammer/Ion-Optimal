@@ -3,4 +3,4 @@ flask_cors==6.0.2
 matplotlib==3.10.8
 numpy==2.4.4
 scikit_learn==1.8.0
-torch==2.8.0
+torch==2.9.0
