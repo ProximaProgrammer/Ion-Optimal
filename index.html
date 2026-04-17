@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html
+    style="font-size: 120%; font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; background-color: rgb(171, 192, 246)">
+
+<body>
+    <div id="answer-box" style="display: none; position:fixed; top:40px; right:40%; padding:35px; background:#51368daa; color:rgb(255, 255, 255); border-radius:8px; z-index:10000; font-family:monospace; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">answer here</div>
+    <h3>Custom Parameters for Ion Thruster</h3>
+
+    <label>Propellant Gas:</label>
+    <select id="gas">
+        <option value="Argon">Argon</option>
+        <option value="Krypton">Krypton</option>
+        <option value="Xenon">Xenon</option>
+        <option value="Helium">Helium</option>
+        <option value="Neon">Neon</option>
+    </select>
+    <br>
+
+    <input type="number" id="power_input" placeholder="Enter power constraint in Watts" style="width: 300px;">
+    <br>
+
+    <label>Gas temperature (Kelvin): <span id="tempValue">500</span></label>
+    <br>
+    <input type="range" id="gas_temperature" min="100" max="1000" step="10" value="500"
+        oninput="document.getElementById('tempValue').innerText = this.value">
+    <br>
+
+    <label>Length (meters): <span id="lenValue">0.05</span></label>
+    <br>
+    <input type="range" id="length" min="0.05" max="10" step="0.01" value="0.05"
+        oninput="document.getElementById('lenValue').innerText = this.value">
+    <br>
+
+    <label>Anode radius (mm): <span id="radiusValue">1</span></label>
+    <br>
+    <input type="range" id="anode_radius" min="1" max="100" step="1" value="1"
+        oninput="document.getElementById('radiusValue').innerText = this.value">
+    <br>
+
+    <label>Ratio of cathode radius to anode radius: <span id="ratioValue">80</span></label>
+    <br>
+    <input type="range" id="radius_ratio" min="10" max="500" step="1" value="80"
+        oninput="document.getElementById('ratioValue').innerText = this.value">
+    <br><br>
+    <button onclick="submit()">Calculate thrust and optimal voltages</button>
+    <br><br><br><br>
+    <div>
+        <img src="{{ url_for('static', filename='images/image1.svg') }}" style="width: 40%; display: block;">
+        <small>Credits: Oona Räisänen</small>
+        <br><br>
+        <img src="{{ url_for('static', filename='images/image2.png') }}" style="width: 40%; display: block;">
+        <small>Credits: Ibrahim Nadeem (Own)</small>
+    </div>
+
+    <script>
+        async function submit() {
+            const payload = {
+                gas: document.getElementById("gas").value,
+                power: parseFloat(document.getElementById("power_input").value),
+                temperature: parseFloat(document.getElementById("gas_temperature").value),
+                length: parseFloat(document.getElementById("length").value),
+                anode_radius: parseFloat(document.getElementById("anode_radius").value),
+                radius_ratio: parseFloat(document.getElementById("radius_ratio").value)
+            };
+
+            try {
+                const response = await fetch('/api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    alert("Server crashed:\n" + text);
+                    return;
+                }
+
+                const result = await response.json();
+                //alert("Thrust: " + result.thrust);
+                document.getElementById('answer-box').innerHTML = "Thrust: " + result.thrust;
+                document.getElementById('answer-box').style.display = 'block';
+
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                alert("Could not connect to back end. Check that the webpage is running properly.");
+            }
+        }
+    </script>
+</body>
+<br>
+<div style="color: rgba(22, 12, 53)">
+<h3>Problem Statement</h3>
+
+In a very promising and novel technology known as Electric/Ion Propulsion, efficiency (including ionizing and thrust efficiency) is the main factor inhibiting such technologies with big theoretical advantages from being useful and efficient when actually built. 
+
+This affects aerospace/aeronautical companies, propulsion labs, and the future of transportation.
+
+<h3>Our Solution</h3>
+
+Our Python system calculates optimal thrust and cathode voltage for ion thrusters based on user inputs, providing the voltage profile, thrust, and efficiency. Using PyTorch and PINNs, it acts as a user-friendly tool for efficient propulsion system optimization.
+
+That is, We will use code to optimize input voltages along the cathode of a discharge channel for an Ion Thruster/Electric propulsion (EHD Thrusters) to maximize outflow efficiency.
+
+This is done by training and using Physics-informed Neural Networks (PINNs) in Python to find the best function of distance along the discharge tunnel to determine the voltage at each point that <b>maximizes thrust</b>. This would also generally mean that
+
+it ensures that the propellant gas is maximally ionized and that the ions are accelerated outward at the fastest velocity.
+
+<div style="opacity: 0.5">
+<h3>More about PINNs (Physics-Informed Neural Networks)</h3>
+Physics-informed neural networks (PINNs) are neural networks that incorporate physical laws described by differential equations into their loss functions to guide the learning process toward solutions that are more consistent with the underlying physics. PINNs can be used to:
+
+    Approximate solutions to partial differential equations (PDEs) and ordinary differential equations (ODEs).
+    Solve inverse problems, such as estimating model parameters from limited data.
+
+
+PINNs are a class of physics-informed machine learning methods that seamlessly integrate physics knowledge with data. Often, PINNs get compared with purely data-driven methods and traditional numerical methods for solving problems involving PDEs and ODEs. 
+
+Unlike purely data-driven approaches, which learn mathematical relationships solely from input and output data, PINNs:
+<ul>
+    <li>Use prior physics knowledge.</li>
+    <li>Make more accurate predictions outside of the training data set.</li>
+    <li>Are more effective with limited or noisy training data.</li>
+</ul>
+
+Unlike traditional numerical methods for solving differential equations, such as finite element analysis for PDEs, PINNs:
+
+<ul>
+    <li>Are mesh-free.</li>
+    <li>Can approximate high-dimensional PDE solutions.</li>
+    <li>Can solve for missing model parameters such as unknown PDE or ODE coefficients.</li>
+    <li>Can solve ill-posed problems where no boundary data exists.</li>
+    <li>Can easily incorporate sparse or noisy measurements.</li>
+</ul>
+</div>
+</div>
+
+</html>
